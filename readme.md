@@ -23,6 +23,11 @@ O `kubectl` CLI é a interface de linha de comando (Command Line Interface) usad
 O `terraform` CLI é a interface de linha de comando (Command Line Interface) do Terraform, uma ferramenta da HashiCorp.  
 [Clicar aqui](https://www.terraform.io/) para consultar a referência de instalação.
 
+### 1.4 Instalar e configurar o `ansible`
+
+O comando `ansible-playbook` é utilizado para executar playbooks no Ansible, uma ferramenta de automação utilizada para gerenciar configurações e orquestrar a execução de tarefas em sistemas remotos.
+[Clicar aqui](https://docs.ansible.com/) para consultar a referência de instalação.
+
 
 
 ## 2. Criar as imagens `docker`
