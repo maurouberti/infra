@@ -1,0 +1,54 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-phpfpm-configmap
+  namespace: projeto
+data:
+  nginx.conf: |
+    server {
+        listen 80;
+        listen [::]:80;
+
+        server_name 127.0.0.1;
+
+        root /usr/share/nginx/html;
+        index index.html;
+
+        # client_max_body_size 12M;
+        charset utf-8;
+
+        # fastcgi_read_timeout 300;
+        # proxy_read_timeout 300;
+
+        gzip on;
+        gzip_vary on;
+        gzip_comp_level 6;
+        gzip_min_length 256;
+        gzip_types text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript;
+
+        location = /favicon.ico {
+            access_log off;
+            log_not_found off;
+        }
+
+        location = /robots.txt {
+            access_log off;
+            log_not_found off;
+        }
+
+        if ($http_user_agent ~* curl|Postman|LWP::Simple|BBBike|wget|msnbot|scrapbot) {
+            return 403;
+        }
+
+        location ~* \.(css|gif|ico|jpeg|jpg|js|png)$ {
+            expires 7d;
+        }
+
+        location ^~ /usuarios {
+            fastcgi_pass phpfpm-service:9000;
+            fastcgi_param SCRIPT_FILENAME /var/www/php-testes/public/index.php;
+            fastcgi_param SCRIPT_NAME /index.php;
+            include fastcgi_params;
+        }
+
+    }

@@ -1,0 +1,25 @@
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: phpfpm-hpa
+  namespace: projeto
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: phpfpm-deployment
+  minReplicas: 1
+  maxReplicas: 80
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization # Tipo de meta para a métrica (Utilização de recursos)
+          averageUtilization: 70 # Meta de utilização média de CPU (30%)
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80 # Meta de utilização média de memória (80%)

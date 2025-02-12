@@ -1,0 +1,40 @@
+---
+- name: Instalação do Sistema
+  hosts: all
+  become: true
+  tasks:
+
+    - name: 01 - Criar diretorios
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        mode: "0755"
+      loop:
+        - "/projeto"
+        - "/projeto/apps"
+        - "/projeto/apps/mysql"
+        - "/projeto/apps/www"
+        - "/projeto/apps/www/nginx"
+        - "/projeto/config"
+        - "/projeto/config/mysql"
+        - "/projeto/config/nginx"
+        - "/projeto/logs"
+        - "/projeto/logs/nginx"
+
+    - name: 02 - Copiar diretorios e arquivos
+      ansible.builtin.copy:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+        mode: "0755"
+      loop:
+        - { src: "docker-compose.yaml", dest: "/projeto/docker-compose.yaml"}
+        - { src: "config/mysql/custom.cnf", dest: "/projeto/config/mysql/custom.cnf"}
+        - { src: "config/nginx/phpfpm.conf", dest: "/projeto/config/nginx/phpfpm.conf"}
+        - { src: "config/nginx/locust.conf", dest: "/projeto/config/nginx/locust.conf"}
+
+    - name: 03 - Iniciar containers
+      community.docker.docker_compose_v2:
+        project_src: "/projeto/"
+        files:
+          - "/projeto/docker-compose.yaml"
+        state: present

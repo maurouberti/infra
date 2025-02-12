@@ -1,0 +1,22 @@
+---
+- name: Criação do certificado SSL
+  hosts: all
+  vars_files:
+    - vars.yaml
+  become: true
+  tasks:
+
+    - name: 01 - Instalar certbot
+      ansible.builtin.apt:
+        name:
+          - certbot
+          - python3-certbot-apache
+        state: present
+        update_cache: true
+
+    - name: 02 - Obter certificado SSL com Certbot em modo standalone
+      command: certbot certonly --standalone -d {{ domain }} --non-interactive --agree-tos --email {{ email }}
+
+      # Renovações Automáticas
+      # O Certbot também configura a renovação automática do certificado, que pode ser verificada com o seguinte comando:
+      # sudo certbot renew --dry-run  --quiet

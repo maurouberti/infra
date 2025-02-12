@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: locust-deployment
+  namespace: projeto
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: locust
+  template:
+    metadata:
+      labels:
+        app: locust
+    spec:
+      containers:
+        - name: locust
+          image: registry.digitalocean.com/dohub/maurouberti/locust:latest
+          imagePullPolicy: Always
+          ports:
+            - name: locust-port
+              containerPort: 8089

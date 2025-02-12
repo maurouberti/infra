@@ -1,0 +1,55 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mysql-create-tables-job
+  namespace: projeto
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 60
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: mysql-create-tables
+          image: registry.digitalocean.com/dohub/maurouberti/mysql:latest
+          command:
+            - /bin/sh
+            - -c
+            - |
+              echo "[client]" > /root/.my.cnf &&
+              echo "user=root" >> /root/.my.cnf &&
+              echo "password=${MYSQL_ROOT_PASSWORD}" >> /root/.my.cnf &&
+              echo "host=mysql-service" >> /root/.my.cnf &&
+              chmod 600 /root/.my.cnf &&
+
+              echo "- Removendo banco de dados" &&
+              mysql -h mysql-service -e "DROP DATABASE IF EXISTS apresentacao;" || { echo "- Erro ao remover banco"; exit 1; }
+
+              echo "- Criando banco de dados" &&
+              mysql -h mysql-service -e "CREATE DATABASE IF NOT EXISTS apresentacao;" || { echo "- Erro ao criar banco"; exit 1; }
+
+              echo "- Criando tabela users" &&
+              mysql -h mysql-service -D apresentacao -e "
+                CREATE TABLE IF NOT EXISTS users (
+                  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+                  name VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+                  email VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL UNIQUE,
+                  password VARCHAR(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+                  PRIMARY KEY (id)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+              " || { echo "- Erro ao criar tabela"; exit 1; }
+
+              echo "- Job concluído com sucesso!
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: MYSQL_ROOT_PASSWORD
+          volumeMounts:
+            - name: data-mysql
+              mountPath: /var/lib/mysql
+      volumes:
+        - name: data-mysql
+          persistentVolumeClaim:
+            claimName: mysql-pvc

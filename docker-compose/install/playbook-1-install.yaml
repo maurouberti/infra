@@ -1,0 +1,87 @@
+---
+- name: Instalação do Servidor
+  hosts: all
+  vars_files:
+    - vars.yaml
+  become: true
+  tasks:
+
+    - name: 01 - Atualizar a lista de pacotes
+      ansible.builtin.apt:
+        update_cache: true
+
+    - name: 02 - Instalar pacotes
+      ansible.builtin.apt:
+        name:
+          - python3
+          - python3-pip
+          - python3-docker # community.docker
+          - python3-gitlab # community.general.gitlab_runner
+          - unrar
+          - git
+        state: present
+
+    - name: 03 - Instalar pacotes Python
+      ansible.builtin.pip:
+        name:
+          - s3cmd
+          - boto3
+          - botocore
+        break_system_packages: true
+        state: present
+
+    - name: 04 - Verificar se o arquivo /projeto/docker-compose.yaml existe no droplet
+      ansible.builtin.stat:
+        path: /projeto/docker-compose.yaml
+      register: www_status
+
+
+
+    - block:
+
+        - name: 05 - Remover pacotes Docker
+          ansible.builtin.package:
+            name:
+              - docker.io
+              - docker-doc
+              - docker-compose
+              - docker-compose-v2
+              - podman-docker
+              - containerd
+              - runc
+            state: absent
+
+        - name: 06 - Baixar o script de instalacao do Docker
+          ansible.builtin.get_url:
+            url: https://get.docker.com
+            dest: /tmp/get-docker.sh
+            mode: "0755"
+
+        - name: 07 - Executar o script de instalacao do Docker
+          ansible.builtin.shell: sh /tmp/get-docker.sh
+
+      when: not www_status.stat.exists # Executar tarefa apenas se o arquivo /projeto/docker-compose.yaml não existir
+
+
+
+    - name: 08 - Garantir que a rede externa 'network_projeto' existe
+      community.docker.docker_network:
+        name: network_projeto
+        driver: bridge
+        state: present
+        # external: true  # Especifica que a rede é externa
+
+    - name: 09 - Carregar token do arquivo
+      set_fact:
+        digitalocean_token: "{{ lookup('file', '../../tokens/doctl-access-token') }}"
+
+    - name: 10 - Autenticar no registry do DigitalOcean
+      community.docker.docker_login:
+        registry_url: "https://registry.digitalocean.com"
+        username: "{{ email }}"
+        password: "{{ digitalocean_token }}"
+      register: docker_login_result
+
+    - name: xx - Verificar sucesso da autenticação
+      debug:
+        msg: "Autenticação no registry foi bem-sucedida: {{ docker_login_result }}"
