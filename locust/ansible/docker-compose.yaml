@@ -1,0 +1,45 @@
+services:
+
+  nginx:
+    hostname: nginx
+    container_name: nginx
+    image: registry.digitalocean.com/dohub/maurouberti/nginx:latest
+    volumes:
+      - /projeto/apps/www/nginx:/var/www/html
+      - /projeto/config/nginx:/etc/nginx/conf.d
+      - /etc/letsencrypt/live/locust.dominio.com.br/fullchain.pem:/etc/ssl/server.crt
+      - /etc/letsencrypt/live/locust.dominio.com.br/privkey.pem:/etc/ssl/server.key
+      - "/etc/timezone:/etc/timezone:ro"
+      - "/etc/localtime:/etc/localtime:ro"
+    ports:
+      - "443:443"
+      - "8001:8001"
+      - "8002:8002"
+    networks:
+      - network_projeto
+
+  locust_1:
+    hostname: locust_1
+    container_name: locust_1
+    image: registry.digitalocean.com/dohub/maurouberti/locust:latest
+    environment:
+      - LOCUST_WEB_PORT=8081
+    ports:
+      - "8081:8081"
+    networks:
+      - network_projeto
+
+  locust_2:
+    hostname: locust_2
+    container_name: locust_2
+    image: registry.digitalocean.com/dohub/maurouberti/locust:latest
+    environment:
+      - LOCUST_WEB_PORT=8082
+    ports:
+      - "8082:8082"
+    networks:
+      - network_projeto
+
+networks:
+  network_projeto:
+    external: true

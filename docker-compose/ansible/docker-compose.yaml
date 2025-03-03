@@ -1,0 +1,59 @@
+services:
+
+  nginx:
+    hostname: nginx
+    container_name: nginx
+    image: registry.digitalocean.com/dohub/maurouberti/nginx:latest
+    ports:
+      - "443:443"
+    volumes:
+      - /projeto/apps/www/nginx:/var/www/html
+      - /projeto/config/nginx:/etc/nginx/conf.d
+      - /etc/letsencrypt/live/${dominio}/fullchain.pem:/etc/ssl/server.crt
+      - /etc/letsencrypt/live/${dominio}/privkey.pem:/etc/ssl/server.key
+      - "/etc/timezone:/etc/timezone:ro"
+      - "/etc/localtime:/etc/localtime:ro"
+    networks:
+      - network_projeto
+
+  phpfpm:
+    hostname: phpfpm
+    container_name: phpfpm
+    image: registry.digitalocean.com/dohub/maurouberti/php-fpm:latest
+    ports:
+      - "9000:9000"
+    environment:
+      - DB_HOST=mysql_db
+      - DB_PORT=3306
+      - DB_DATABASE=${mysql_db}
+      - DB_USERNAME=${mysql_user}
+      - DB_PASSWORD=${mysql_pass}
+    networks:
+      - network_projeto
+    depends_on:
+      - mysql_db
+
+  mysql_db:
+    hostname: mysql_db
+    container_name: mysql_db
+    image: registry.digitalocean.com/dohub/maurouberti/mysql:latest
+    ports:
+      - "3306:3306"
+    command: [
+      "mysqld",
+      "--innodb_use_native_aio=0",
+      "--default-authentication-plugin=mysql_native_password",
+      "--table_definition_cache=1024"
+    ]
+    volumes:
+      - ./apps/mysql:/var/lib/mysql
+      - ./config/mysql/custom.cnf:/etc/mysql/conf.d/custom.cnf
+    environment:
+      - MYSQL_ROOT_PASSWORD=${mysql_pass}
+      - MYSQL_DATABASE=${mysql_db}
+    networks:
+      - network_projeto
+
+networks:
+  network_projeto:
+    external: true

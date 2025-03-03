@@ -13,6 +13,8 @@ As ferramentas utilizadas para a criação da Infraestrutura como Código (IaC).
 O `doctl` CLI é a interface de linha de comando (Command Line Interface) oficial da DigitalOcean, usada para gerenciar recursos da plataforma.  
 [Clicar aqui](https://docs.digitalocean.com/reference/doctl/how-to/install/) para consultar a referência de instalação.
 
+> ATENÇÃO: Salvar o token no arquivo `/tokens/doctl-access-token`
+
 ### 1.2 Instalar e configurar `kubectl`
 
 O `kubectl` CLI é a interface de linha de comando (Command Line Interface) usada para gerenciar clusters Kubernetes.  
@@ -28,83 +30,59 @@ O `terraform` CLI é a interface de linha de comando (Command Line Interface) do
 O comando `ansible-playbook` é utilizado para executar playbooks no Ansible, uma ferramenta de automação utilizada para gerenciar configurações e orquestrar a execução de tarefas em sistemas remotos.
 [Clicar aqui](https://docs.ansible.com/) para consultar a referência de instalação.
 
+### 1.5 Instalar o `docker`
+
+O `docker` deve estar instalado para realizar a construções das imagens.
+[Clicar aqui](https://docs.docker.com/engine/install/) para consultar a referência de instalação.
 
 
-## 2. Criar as imagens `docker`
+
+## 2. Observações
+
+Antes de começar altere o dominio `dominio.com.br` e `usuario-do@email.com` de todos os arquivos:
+
+### 2.1 Criar uma SSH exclusiva para esta *infra*
+
+```bash
+ssh-keygen -t rsa -C "usuario-do@email.com" -f ./tokens/digital-ocean-id_rsa -N ""
+chmod 600 ./tokens/digital-ocean-id_rsa
+```
+
+
+
+## 3. Criar as imagens `docker`
 
 As imagens foram armazenadas no `Container Registry` da DigitalOcean.
 
-### 2.1 Criar **dohub**
+### 3.1 Criar **dohub**
 
 ```bash
 doctl registry create dohub --region=sfo3
 ```
 
-### 2.2 Gerar imagens
+### 3.2 Gerar imagens
 
 ```bash
-docker build -t registry.digitalocean.com/dohub/maurouberti/nginx:latest dohub/nginx
-docker tag registry.digitalocean.com/dohub/maurouberti/nginx:latest registry.digitalocean.com/dohub/maurouberti/nginx:1.0
-docker push --all-tags registry.digitalocean.com/dohub/maurouberti/nginx
-docker rmi -f registry.digitalocean.com/dohub/maurouberti/nginx:latest -f registry.digitalocean.com/dohub/maurouberti/nginx:1.0
-
-docker build -t registry.digitalocean.com/dohub/maurouberti/php-fpm:latest dohub/php-fpm
-docker tag registry.digitalocean.com/dohub/maurouberti/php-fpm:latest registry.digitalocean.com/dohub/maurouberti/php-fpm:1.0
+docker build -t registry.digitalocean.com/dohub/maurouberti/php-fpm:latest ./dohub/php-fpm
 docker push --all-tags registry.digitalocean.com/dohub/maurouberti/php-fpm
-docker rmi -f registry.digitalocean.com/dohub/maurouberti/php-fpm:latest -f registry.digitalocean.com/dohub/maurouberti/php-fpm:1.0
 
-docker build -t registry.digitalocean.com/dohub/maurouberti/mysql:latest dohub/mysql
-docker tag registry.digitalocean.com/dohub/maurouberti/mysql:latest registry.digitalocean.com/dohub/maurouberti/mysql:1.0
-docker push --all-tags registry.digitalocean.com/dohub/maurouberti/mysql
-docker rmi -f registry.digitalocean.com/dohub/maurouberti/mysql:latest -f registry.digitalocean.com/dohub/maurouberti/mysql:1.0
-
-docker build -t registry.digitalocean.com/dohub/maurouberti/locust:latest dohub/locust
-docker tag registry.digitalocean.com/dohub/maurouberti/locust:latest registry.digitalocean.com/dohub/maurouberti/locust:1.0
+docker build -t registry.digitalocean.com/dohub/maurouberti/locust:latest ./dohub/locust
 docker push --all-tags registry.digitalocean.com/dohub/maurouberti/locust
-docker rmi -f registry.digitalocean.com/dohub/maurouberti/locust:latest -f registry.digitalocean.com/dohub/maurouberti/locust:1.0
 
-docker system prune
+docker build -t registry.digitalocean.com/dohub/maurouberti/nginx:latest ./dohub/nginx
+docker push --all-tags registry.digitalocean.com/dohub/maurouberti/nginx
+
+docker build -t registry.digitalocean.com/dohub/maurouberti/mysql:latest ./dohub/mysql
+docker push --all-tags registry.digitalocean.com/dohub/maurouberti/mysql
 ```
 
 
 
-## 3. Criar ambiente `docker-compose`
-
-### 3.1 Criar uma SSH exclusiva para esta *infra*
-
-```bash
-ssh-keygen -t rsa -C "maurouberti@hotmail.com" -f ./tokens/docker-compose-id_rsa -N ""
-chmod 600 ./tokens/docker-compose-id_rsa
-```
-
-### 3.2 Criar infraestrutura
-
-Navegue até a pasta `docker-compose/create-droplet/` e execute o seguinte comando:
-
-```bash
-terraform init
-terraform apply -auto-approve
-```
-
-### 3.3 Instalação e configurações
-
-Navegue até a pasta `docker-compose/install/` e execute o seguinte comando:
-
-```bash
-ansible-playbook ./playbook-1-install.yaml -i ./hosts --private-key=./tokens/docker-compose-id_rsa
-ansible-playbook ./playbook-2-certificate.yaml -i ./hosts --private-key=./tokens/docker-compose-id_rsa
-ansible-playbook ./playbook-3-app.yaml -i ./hosts --private-key=./tokens/docker-compose-id_rsa
-```
-
-> ATENÇÃO: Se for **windows**, entrar no prompt `WSL` (ansible não tem para windows)
-
-
-
-## 4. Criar ambiente `kubernetes`
+## 4. Criar ambiente `docker-compose`
 
 ### 4.1 Criar infraestrutura
 
-Navegue até a pasta `kubernetes/create-cluster/` e execute o seguinte comando:
+Navegue até a pasta `docker-compose/terraform/` e execute o seguinte comando:
 
 ```bash
 terraform init
@@ -113,69 +91,104 @@ terraform apply -auto-approve
 
 ### 4.2 Instalação e configurações
 
-Navegue até a pasta `kubernetes/install/` e execute o seguinte comando:
+Navegue até a pasta `docker-compose/ansible/` e execute o seguinte comando:
+
+```bash
+ansible-playbook ./playbook.yaml -i ./hosts
+```
+
+### 4.3 Criar database
+
+https://dc.dominio.com.br/usuarios/database
+
+
+
+## 5. Criar ambiente `kubernetes`
+
+### 5.1 Criar infraestrutura
+
+Navegue até a pasta `kubernetes/terraform/` e execute o seguinte comando:
+
+```bash
+terraform init
+terraform apply -auto-approve
+```
+
+### 5.2 Instalação e configurações
+
+Navegue até a pasta `kubernetes/kubectl/` e execute o seguinte comando:
+
+
+```bash
+kubectl create secret docker-registry registry-dohub \
+  --docker-server=registry.digitalocean.com \
+  --docker-username=usuario-do@email.com \
+  --docker-password="$(cat ../../tokens/doctl-access-token)" \
+  --docker-email=usuario-do@email.com \
+  --namespace=projeto
+```
 
 ```bash
 kubectl apply -f ./namespace.yaml
-```
-
-Criar e configurar um serviço `php-fph`
-
-```bash
-kubectl apply -f ./phpfpm-configmap.yaml
-kubectl apply -f ./phpfpm-secret.yaml
-kubectl apply -f ./phpfpm-deployment.yaml
-kubectl apply -f ./phpfpm-service.yaml
-kubectl apply -f ./phpfpm-hpa.yaml
-```
-
-Criar um `certificado` SSL/TLS usando o Let's Encrypt na DigitalOcean.
-
-```bash
+kubectl apply -f ./mysql.yaml
+kubectl apply -f ./phpfpm.yaml
 doctl compute certificate create --type lets_encrypt --name cert-k8s --dns-names k8s.dominio.com.br
+kubectl apply -f ./nginx.yaml
+# aguarde
+doctl compute domain records create dominio.com.br --record-type A --record-name k8s --record-ttl 1800 --record-data $(kubectl get svc -n projeto | grep nginx-load-balancer | awk '{print $4}' | cut -d ',' -f 1)
+doctl compute domain records create dominio.com.br --record-type AAAA --record-name k8s --record-ttl 1800 --record-data $(kubectl get svc -n projeto | grep nginx-load-balancer | awk '{print $4}' | cut -d ',' -f 2)
 ```
 
-Criar e configurar um serviço `nginx`
+HPA
 
 ```bash
-kubectl apply -f ./nginx-configmap.yaml
-kubectl apply -f ./nginx-deployment.yaml
-kubectl apply -f ./nginx-load-balancer.yaml
+kubectl apply -f ./metrics-server.yaml
+kubectl apply -f ./phpfpm-hpa.yaml
+kubectl apply -f ./nginx-hpa.yaml
 ```
 
-Aguardar a criação do load balancer antes de registrar o DNS do `domínio`.
+### 5.3 Criar database
+
+https://k8s.dominio.com.br/usuarios/database
+
+
+
+## 6. Criar ambiente `locust`
+
+### 6.1 Criar infraestrutura
+
+Navegue até a pasta `locust/terraform/` e execute o seguinte comando:
 
 ```bash
-doctl compute domain records create dominio.com.br --record-type A --record-name k8s --record-ttl 1800 --record-data $(kubectl get svc -n projeto | grep nginx-phpfpm-load-balancer | awk '{print $4}')
+terraform init
+terraform apply -auto-approve
 ```
 
-Criar e configurar um serviço `mysql`
+### 6.2 Instalação e configurações
+
+Navegue até a pasta `locust/ansible/` e execute o seguinte comando:
 
 ```bash
-kubectl apply -f ./mysql-pvc.yaml
-kubectl apply -f ./mysql-secret.yaml
-kubectl apply -f ./mysql-statefulset.yaml
-kubectl apply -f ./mysql-service.yaml
+ansible-playbook ./playbook.yaml -i ./hosts
 ```
 
-Criar o banco de dados
+
+
+## 7 Exclusão
 
 ```bash
-kubectl apply -f ./mysql-job.yaml
-kubectl delete -f ./mysql-job.yaml
+cd ./locust/terraform
+terraform destroy -auto-approve
+
+cd ./docker-compose/terraform
+terraform destroy -auto-approve
+
+cd ./kubernetes/terraform
+terraform destroy -auto-approve
+
+doctl compute volume delete $(doctl compute volume list --no-header | awk '{print $1}') --force
+doctl compute load-balancer delete $(doctl compute load-balancer list --no-header | awk '{print $1}') --force
+doctl compute domain records delete dominio.com.br $(doctl compute domain records list dominio.com.br | grep k8s | grep -v www | awk '{print $1}') --force
+doctl compute certificate delete $(doctl compute certificate list --no-header | awk '{print $1}') --force
+doctl registry delete dohub
 ```
-
-Criar e configurar um serviço `locust` (teste de carga)
-
-```bash
-kubectl apply -f ./locust-deployment.yaml
-kubectl apply -f ./locust-service.yaml
-```
-
-Fazer o redirecionamento de porta (port-forwarding) do `locust` para sua máquina local.
-
-```bash
-kubectl port-forward svc/locust-svc -n projeto 9000:8089
-```
-
-Acessar por http://localhost:9000/

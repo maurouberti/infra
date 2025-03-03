@@ -1,0 +1,19 @@
+variable "do_token" {
+  type = string
+}
+
+variable "domain" {
+  type = string
+}
+
+variable "distro_image" {
+  type = string
+}
+
+variable "region" {
+  type = string
+}
+
+variable "droplet_size" {
+  type = string
+}
