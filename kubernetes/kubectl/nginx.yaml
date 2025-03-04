@@ -14,11 +14,7 @@ data:
         root /usr/share/nginx/html;
         index index.html;
 
-        # client_max_body_size 12M;
         charset utf-8;
-
-        # fastcgi_read_timeout 300;
-        # proxy_read_timeout 300;
 
         gzip on;
         gzip_vary on;
@@ -59,12 +55,12 @@ metadata:
   name: nginx-load-balancer
   namespace: projeto
   annotations:
-    service.beta.kubernetes.io/do-loadbalancer-name: "nginx-load-balancer"
+    service.beta.kubernetes.io/do-loadbalancer-name: "loadbalancer-k8s"
     service.beta.kubernetes.io/do-loadbalancer-protocol: "http"
     service.beta.kubernetes.io/do-loadbalancer-redirect-http-to-https: "true"
     service.beta.kubernetes.io/do-loadbalancer-tls-ports: "443"
     service.beta.kubernetes.io/do-loadbalancer-certificate-name: "cert-k8s"
-    service.beta.kubernetes.io/do-loadbalancer-disable-lets-encrypt-dns-records: "false"
+    service.beta.kubernetes.io/do-loadbalancer-disable-lets-encrypt-dns-records: "true"
     service.beta.kubernetes.io/do-loadbalancer-http-idle-timeout-seconds: "240"
     # service.beta.kubernetes.io/do-loadbalancer-size-unit: "3"
 spec:

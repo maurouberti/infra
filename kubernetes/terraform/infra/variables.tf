@@ -10,6 +10,14 @@ variable "region" {
   type = string
 }
 
+variable "subdomain" {
+  type = string
+}
+
+variable "domain" {
+  type = string
+}
+
 variable "droplet_size" {
   type = string
 }

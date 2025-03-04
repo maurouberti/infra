@@ -1,11 +1,5 @@
-resource "digitalocean_certificate" "cert_docker_compose" {
-  name    = "cert-dc"
-  type    = "lets_encrypt"
-  domains = ["lb.${var.domain}"]
-}
-
 resource "digitalocean_loadbalancer" "loadbalancer_docker_compose" {
-  name   = "loadbalancer-${var.name}"
+  name   = "loadbalancer-dc"
   region = var.region
 
   forwarding_rule {

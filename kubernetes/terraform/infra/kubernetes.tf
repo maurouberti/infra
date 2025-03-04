@@ -6,7 +6,7 @@ resource "digitalocean_kubernetes_cluster" "cluster_k8s" {
   name    = "cluster"
   region  = var.region
   version = data.digitalocean_kubernetes_versions.versions_k8s.latest_version
-  tags    = ["kubernetes", "cluster"]
+  tags    = ["kubernetes", "cluster", "projeto"]
 
   node_pool {
     name       = "kubernetes"
@@ -14,7 +14,7 @@ resource "digitalocean_kubernetes_cluster" "cluster_k8s" {
     auto_scale = true
     min_nodes  = var.min_nodes
     max_nodes  = var.max_nodes
-    tags       = ["kubernetes", "droplet"]
+    tags       = ["kubernetes", "droplet", "projeto"]
   }
 }
 

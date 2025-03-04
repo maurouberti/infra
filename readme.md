@@ -18,9 +18,9 @@ As ferramentas utilizadas para a criação da Infraestrutura como Código (IaC).
 
 ## 2. Observações
 
-Antes de começar altere o dominio `dominio.com.br` e `usuario-do@email.com` de todos os arquivos  
-Salvar o token no arquivo `/tokens/doctl-access-token`  
-Criar uma SSH exclusiva para esta *infra*:
+* Antes de começar altere o dominio `dominio.com.br` e `usuario-do@email.com` de todos os arquivos  
+* Salvar o token no arquivo `/tokens/doctl-access-token`  
+* Criar uma SSH exclusiva para esta *infra*:
 
 ```bash
 ssh-keygen -t rsa -C "usuario-do@email.com" -f ./tokens/digital-ocean-id_rsa -N ""
@@ -54,28 +54,28 @@ docker push --all-tags registry.digitalocean.com/dohub/maurouberti/mysql
 ## 4. Criar ambiente `docker-compose`
 
 ```bash
-# Navegue até a pasta `docker-compose/terraform/` e execute o seguinte comando:
+# Navegue até a pasta `docker-compose/terraform/`
 terraform init
 terraform apply -auto-approve
 
-# Navegue até a pasta `docker-compose/ansible/` e execute o seguinte comando:
+# Navegue até a pasta `docker-compose/ansible/`
 ansible-playbook ./playbook.yaml -i ./hosts
 ```
 
-Criar database
-
-https://dc.dominio.com.br/usuarios/database
+> https://lb.dominio.com.br/usuarios/database
 
 
 
 ## 5. Criar ambiente `kubernetes`
 
 ```bash
-# Navegue até a pasta `kubernetes/terraform/` e execute o seguinte comando:
+# Navegue até a pasta `kubernetes/terraform/`
 terraform init
 terraform apply -auto-approve
 
-# Navegue até a pasta `kubernetes/kubectl/` e execute o seguinte comando:
+# Navegue até a pasta `kubernetes/kubectl/`
+kubectl apply -f ./namespace.yaml
+
 kubectl create secret docker-registry registry-dohub \
   --docker-server=registry.digitalocean.com \
   --docker-username=usuario-do@email.com \
@@ -83,52 +83,47 @@ kubectl create secret docker-registry registry-dohub \
   --docker-email=usuario-do@email.com \
   --namespace=projeto
 
-
-kubectl apply -f ./namespace.yaml
 kubectl apply -f ./mysql.yaml
 kubectl apply -f ./phpfpm.yaml
-doctl compute certificate create --type lets_encrypt --name cert-k8s --dns-names k8s.dominio.com.br
 kubectl apply -f ./nginx.yaml
-
-# aguarde e execute
-doctl compute domain records create dominio.com.br --record-type A --record-name k8s --record-ttl 1800 --record-data $(kubectl get svc -n projeto | grep nginx-load-balancer | awk '{print $4}' | cut -d ',' -f 1)
-doctl compute domain records create dominio.com.br --record-type AAAA --record-name k8s --record-ttl 1800 --record-data $(kubectl get svc -n projeto | grep nginx-load-balancer | awk '{print $4}' | cut -d ',' -f 2)
-
-# HPA
 kubectl apply -f ./metrics-server.yaml
 kubectl apply -f ./phpfpm-hpa.yaml
 kubectl apply -f ./nginx-hpa.yaml
+
+# aguarde a criação do loadbalancer
+doctl compute domain records create dominio.com.br --record-type A --record-name k8s --record-ttl 1800 --record-data $(kubectl get svc -n projeto | grep nginx-load-balancer | awk '{print $4}' | cut -d ',' -f 1)
+doctl compute domain records create dominio.com.br --record-type AAAA --record-name k8s --record-ttl 1800 --record-data $(kubectl get svc -n projeto | grep nginx-load-balancer | awk '{print $4}' | cut -d ',' -f 2)
 ```
 
-Criar database
-
-https://k8s.dominio.com.br/usuarios/database
+> https://k8s.dominio.com.br/usuarios/database
 
 
 
 ## 6. Criar ambiente `locust`
 
 ```bash
-# Navegue até a pasta `locust/terraform/` e execute o seguinte comando:
+# Navegue até a pasta `locust/terraform/`
 terraform init
 terraform apply -auto-approve
 
-# Navegue até a pasta `locust/ansible/` e execute o seguinte comando:
+# Navegue até a pasta `locust/ansible/`
 ansible-playbook ./playbook.yaml -i ./hosts
 ```
 
+> https://locust.dominio.com.br:8001 e https://locust.dominio.com.br:8002
 
 
-## 7 Exclusão
+
+## 7. Exclusão
 
 ```bash
-# Navegue até a pasta `locust/terraform/` e execute o seguinte comando:
+# Navegue até a pasta `locust/terraform/`
 terraform destroy -auto-approve
 
-# Navegue até a pasta `docker-compose/terraform/` e execute o seguinte comando:
+# Navegue até a pasta `docker-compose/terraform/`
 terraform destroy -auto-approve
 
-# Navegue até a pasta `kubernetes/terraform/` e execute o seguinte comando:
+# Navegue até a pasta `kubernetes/terraform/`
 terraform destroy -auto-approve
 
 doctl compute volume delete $(doctl compute volume list --no-header | awk '{print $1}') --force
