@@ -1,2 +1,2 @@
 [droplet_locust]
-locust.sane-maquiagem.com.br ansible_user=root ansible_python_interpreter=/usr/bin/python3 ansible_ssh_private_key_file=../../tokens/digital-ocean-id_rsa
+locust.dominio.com.br ansible_user=root ansible_python_interpreter=/usr/bin/python3 ansible_ssh_private_key_file=../../tokens/digital-ocean-id_rsa

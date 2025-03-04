@@ -7,8 +7,8 @@ services:
     volumes:
       - /projeto/apps/www/nginx:/var/www/html
       - /projeto/config/nginx:/etc/nginx/conf.d
-      - /etc/letsencrypt/live/locust.sane-maquiagem.com.br/fullchain.pem:/etc/ssl/server.crt
-      - /etc/letsencrypt/live/locust.sane-maquiagem.com.br/privkey.pem:/etc/ssl/server.key
+      - /etc/letsencrypt/live/locust.dominio.com.br/fullchain.pem:/etc/ssl/server.crt
+      - /etc/letsencrypt/live/locust.dominio.com.br/privkey.pem:/etc/ssl/server.key
       - "/etc/timezone:/etc/timezone:ro"
       - "/etc/localtime:/etc/localtime:ro"
     ports:

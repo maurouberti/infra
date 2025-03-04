@@ -1,7 +1,7 @@
 module "module_locust" {
   source       = "./infra"
   do_token     = file("../../tokens/doctl-access-token")
-  domain       = "sane-maquiagem.com.br"
+  domain       = "dominio.com.br"
   distro_image = "ubuntu-24-04-x64"
   region       = "sfo3"
   droplet_size = "s-4vcpu-8gb"

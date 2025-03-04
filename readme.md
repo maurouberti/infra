@@ -18,7 +18,7 @@ As ferramentas utilizadas para a criação da Infraestrutura como Código (IaC).
 
 ## 2. Observações
 
-Antes de começar altere o dominio `sane-maquiagem.com.br` e `usuario-do@email.com` de todos os arquivos  
+Antes de começar altere o dominio `dominio.com.br` e `usuario-do@email.com` de todos os arquivos  
 Salvar o token no arquivo `/tokens/doctl-access-token`  
 Criar uma SSH exclusiva para esta *infra*:
 
@@ -64,7 +64,7 @@ ansible-playbook ./playbook.yaml -i ./hosts
 
 Criar database
 
-https://dc.sane-maquiagem.com.br/usuarios/database
+https://dc.dominio.com.br/usuarios/database
 
 
 
@@ -87,12 +87,12 @@ kubectl create secret docker-registry registry-dohub \
 kubectl apply -f ./namespace.yaml
 kubectl apply -f ./mysql.yaml
 kubectl apply -f ./phpfpm.yaml
-doctl compute certificate create --type lets_encrypt --name cert-k8s --dns-names k8s.sane-maquiagem.com.br
+doctl compute certificate create --type lets_encrypt --name cert-k8s --dns-names k8s.dominio.com.br
 kubectl apply -f ./nginx.yaml
 
 # aguarde e execute
-doctl compute domain records create sane-maquiagem.com.br --record-type A --record-name k8s --record-ttl 1800 --record-data $(kubectl get svc -n projeto | grep nginx-load-balancer | awk '{print $4}' | cut -d ',' -f 1)
-doctl compute domain records create sane-maquiagem.com.br --record-type AAAA --record-name k8s --record-ttl 1800 --record-data $(kubectl get svc -n projeto | grep nginx-load-balancer | awk '{print $4}' | cut -d ',' -f 2)
+doctl compute domain records create dominio.com.br --record-type A --record-name k8s --record-ttl 1800 --record-data $(kubectl get svc -n projeto | grep nginx-load-balancer | awk '{print $4}' | cut -d ',' -f 1)
+doctl compute domain records create dominio.com.br --record-type AAAA --record-name k8s --record-ttl 1800 --record-data $(kubectl get svc -n projeto | grep nginx-load-balancer | awk '{print $4}' | cut -d ',' -f 2)
 
 # HPA
 kubectl apply -f ./metrics-server.yaml
@@ -102,7 +102,7 @@ kubectl apply -f ./nginx-hpa.yaml
 
 Criar database
 
-https://k8s.sane-maquiagem.com.br/usuarios/database
+https://k8s.dominio.com.br/usuarios/database
 
 
 
@@ -133,7 +133,7 @@ terraform destroy -auto-approve
 
 doctl compute volume delete $(doctl compute volume list --no-header | awk '{print $1}') --force
 doctl compute load-balancer delete $(doctl compute load-balancer list --no-header | awk '{print $1}') --force
-doctl compute domain records delete sane-maquiagem.com.br $(doctl compute domain records list sane-maquiagem.com.br | grep k8s | grep -v www | awk '{print $1}') --force
+doctl compute domain records delete dominio.com.br $(doctl compute domain records list dominio.com.br | grep k8s | grep -v www | awk '{print $1}') --force
 doctl compute certificate delete $(doctl compute certificate list --no-header | awk '{print $1}') --force
 doctl registry delete dohub
 ```

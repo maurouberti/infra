@@ -4,7 +4,7 @@ module "module_docker_compose" {
   pub_key      = file("../../tokens/digital-ocean-id_rsa.pub")
   name         = "docker-compose"
   subdomain    = "dc"
-  domain       = "sane-maquiagem.com.br"
+  domain       = "dominio.com.br"
   distro_image = "ubuntu-24-04-x64"
   region       = "sfo3"
   droplet_size = "s-4vcpu-8gb"
