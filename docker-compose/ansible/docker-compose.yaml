@@ -5,12 +5,10 @@ services:
     container_name: nginx
     image: registry.digitalocean.com/dohub/maurouberti/nginx:latest
     ports:
-      - "443:443"
+      - "80:80"
     volumes:
       - /projeto/apps/www/nginx:/var/www/html
       - /projeto/config/nginx:/etc/nginx/conf.d
-      - /etc/letsencrypt/live/${dominio}/fullchain.pem:/etc/ssl/server.crt
-      - /etc/letsencrypt/live/${dominio}/privkey.pem:/etc/ssl/server.key
       - "/etc/timezone:/etc/timezone:ro"
       - "/etc/localtime:/etc/localtime:ro"
     networks:
