@@ -27,6 +27,13 @@ ssh-keygen -t rsa -C "usuario-do@email.com" -f ./tokens/digital-ocean-id_rsa -N 
 chmod 600 ./tokens/digital-ocean-id_rsa
 ```
 
+Autenticações
+
+```bash
+doctl auth init --access-token $(cat tokens/doctl-access-token)
+doctl registry login --never-expire
+```
+
 
 
 ## 3. Criar as imagens `docker`
@@ -36,17 +43,17 @@ As imagens foram armazenadas no `Container Registry` da DigitalOcean.
 ```bash
 doctl registry create dohub --region=sfo3
 
-docker build -t registry.digitalocean.com/dohub/maurouberti/php-fpm:latest ./dohub/php-fpm
-docker push --all-tags registry.digitalocean.com/dohub/maurouberti/php-fpm
-
 docker build -t registry.digitalocean.com/dohub/maurouberti/locust:latest ./dohub/locust
 docker push --all-tags registry.digitalocean.com/dohub/maurouberti/locust
+
+docker build -t registry.digitalocean.com/dohub/maurouberti/mysql:latest ./dohub/mysql
+docker push --all-tags registry.digitalocean.com/dohub/maurouberti/mysql
 
 docker build -t registry.digitalocean.com/dohub/maurouberti/nginx:latest ./dohub/nginx
 docker push --all-tags registry.digitalocean.com/dohub/maurouberti/nginx
 
-docker build -t registry.digitalocean.com/dohub/maurouberti/mysql:latest ./dohub/mysql
-docker push --all-tags registry.digitalocean.com/dohub/maurouberti/mysql
+docker build -t registry.digitalocean.com/dohub/maurouberti/php-fpm:latest ./dohub/php-fpm
+docker push --all-tags registry.digitalocean.com/dohub/maurouberti/php-fpm
 ```
 
 

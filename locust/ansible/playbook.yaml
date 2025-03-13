@@ -6,11 +6,11 @@
   become: true
   tasks:
 
-    - name: 1.1 - Atualizar a lista de pacotes
+    - name: 1/15 - Atualizar a lista de pacotes
       ansible.builtin.apt:
         update_cache: true
 
-    - name: 1.2 - Instalar pacotes
+    - name: 2/15 - Instalar pacotes
       ansible.builtin.apt:
         name:
           - python3
@@ -21,7 +21,7 @@
           - git
         state: present
 
-    - name: 1.3 - Instalar pacotes Python
+    - name: 3/15 - Instalar pacotes Python
       ansible.builtin.pip:
         name:
           - s3cmd
@@ -30,14 +30,14 @@
         break_system_packages: true
         state: present
 
-    - name: 1.4 - Verificar se o arquivo /projeto/docker-compose.yaml existe no droplet
+    - name: 4/15 - Verificar se o arquivo /projeto/docker-compose.yaml existe no droplet
       ansible.builtin.stat:
         path: /projeto/docker-compose.yaml
       register: www_status
 
     - block:
 
-        - name: 1.5 - Remover pacotes Docker
+        - name: 5/15 - Remover pacotes Docker
           ansible.builtin.package:
             name:
               - docker.io
@@ -49,56 +49,56 @@
               - runc
             state: absent
 
-        - name: 1.6 - Baixar o script de instalacao do Docker
+        - name: 6/15 - Baixar o script de instalacao do Docker
           ansible.builtin.get_url:
             url: https://get.docker.com
             dest: /tmp/get-docker.sh
             mode: "0755"
 
-        - name: 1.7 - Executar o script de instalacao do Docker
+        - name: 7/15 - Executar o script de instalacao do Docker
           ansible.builtin.shell: sh /tmp/get-docker.sh
 
       when: not www_status.stat.exists # Executar tarefa apenas se o arquivo /projeto/docker-compose.yaml não existir
 
 
 
-    - name: 1.8 - Garantir que a rede externa 'network_projeto' existe
+    - name: 8/15 - Garantir que a rede externa 'network_projeto' existe
       community.docker.docker_network:
         name: network_projeto
         driver: bridge
         state: present
         # external: true  # Especifica que a rede é externa
 
-    - name: 1.9 - Carregar token do arquivo
+    - name: 9/15 - Carregar token do arquivo
       set_fact:
         digitalocean_token: "{{ lookup('file', '../../tokens/doctl-access-token') }}"
 
-    - name: 1.10 - Autenticar no registry do DigitalOcean
+    - name: 10/15 - Autenticar no registry do DigitalOcean
       community.docker.docker_login:
         registry_url: "https://registry.digitalocean.com"
         username: "{{ email }}"
         password: "{{ digitalocean_token }}"
       register: docker_login_result
 
-    - name: 1.xx - Verificar sucesso da autenticação
+    - name: Verificar sucesso da autenticação
       debug:
         msg: "Autenticação no registry foi bem-sucedida: {{ docker_login_result }}"
 
 
 
-    - name: 2.1 - Instalar certbot
+    - name: 11/15 - Instalar certbot
       ansible.builtin.apt:
         name:
           - certbot
         state: present
         update_cache: true
 
-    - name: 2.2 - Obter certificado SSL com Certbot em modo standalone
+    - name: 12/15 - Obter certificado SSL com Certbot em modo standalone
       command: certbot certonly --standalone -d {{ domain }} --non-interactive --agree-tos --email {{ email }}
 
 
 
-    - name: 3.1 - Criar diretorios
+    - name: 13/15 - Criar diretorios
       ansible.builtin.file:
         path: "{{ item }}"
         state: directory
@@ -111,7 +111,7 @@
         - "/projeto/config"
         - "/projeto/config/nginx"
 
-    - name: 3.2 - Copiar diretorios e arquivos
+    - name: 14/15 - Copiar diretorios e arquivos
       ansible.builtin.copy:
         src: "{{ item.src }}"
         dest: "{{ item.dest }}"
@@ -122,7 +122,7 @@
         - { src: "config/nginx/locust_1.conf", dest: "/projeto/config/nginx/locust_1.conf"}
         - { src: "config/nginx/locust_2.conf", dest: "/projeto/config/nginx/locust_2.conf"}
 
-    - name: 3.3 - Iniciar containers
+    - name: 15/15 - Iniciar containers
       community.docker.docker_compose_v2:
         project_src: "/projeto/"
         files:
